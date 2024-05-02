@@ -8,7 +8,6 @@ const app = express();
 let path = "./data/pokemon-data.json";
 
 app.use(cors());
-//GET PUT UPDATE DELETE CREATE
 
 app.get("/", function (req, res) {
   res.send(
@@ -30,29 +29,7 @@ app.get("/random", function (req, res) {
       res.status(404).send("pas de pokemon");
     });
 });
-// app.get("/random/:types", function (req, res) {
-//   fs.readFile(path)
-//     .then((data) => {
-//       let pokemons = JSON.parse(data);
-//       let pokemonsOfTypes = pokemons.filter((pokemon) =>
-//         pokemon.Types.includes(req.params.types)
-//       );
 
-//       if (pokemonsOfTypes.length === 0) {
-//         return res
-//           .status(404)
-//           .send(`pas de types correspondant à '${req.params.type}'`);
-//       }
-
-//       let randomInt = Math.floor(Math.random() * pokemonsOfTypes.length);
-//       let randomPokemon = pokemonsOfTypes[randomInt];
-
-//       res.send(randomPokemon);
-//     })
-//     .catch((error) => {
-//       // Do something if error
-//     });
-// });
 app.get("/random/:types", async function (req, res) {
   try {
     const response = await axios.get("http://localhost:3001/liste/types");
@@ -70,9 +47,7 @@ app.get("/random/:types", async function (req, res) {
     const randomPokemon = pokemonsOfTypes[randomInt];
 
     res.send(randomPokemon);
-  } catch (error) {
-    // Handle error if necessary
-  }
+  } catch (error) {}
 });
 
 app.get("/random/:type1/:type2", function (req, res) {
@@ -98,35 +73,9 @@ app.get("/random/:type1/:type2", function (req, res) {
 
       res.send(randomPokemon);
     })
-    .catch((error) => {
-      // Handle error if necessary
-    });
+    .catch((error) => {});
 });
-// app.get("/random/stage/:stage", function (req, res) {
-//   const stage = parseInt(req.params.stage);
 
-//   fs.readFile(path)
-//     .then((data) => {
-//       let pokemons = JSON.parse(data);
-//       if (stage == 1) {
-//         pokemons = pokemons.filter(
-//           (pokemon) => pokemon["Next Evolution(s)"].length > 0
-//         );
-//       } else if (stage == 2) {
-//         pokemons = pokemons.filter(
-//           (pokemon) => pokemon["Next Evolution(s)"].length === 0
-//         );
-//       }
-//       console.log(pokemons);
-//       let randomInt = Math.floor(Math.random() * pokemons.length);
-//       let randomPokemon = pokemons[randomInt];
-//       console.log(randomPokemon);
-//       res.send(randomPokemon);
-//     })
-//     .catch((error) => {
-//       // Do something if error
-//     });
-// });
 app.get("/random/stage/:evo", function (req, res) {
   fs.readFile(path)
     .then((data) => {
@@ -150,9 +99,7 @@ app.get("/random/stage/:evo", function (req, res) {
 
       res.send(randomPokemon);
     })
-    .catch((error) => {
-      // Do something if error
-    });
+    .catch((error) => {});
 });
 app.get("/liste/tier", function (req, res) {
   fs.readFile(path)
@@ -162,9 +109,7 @@ app.get("/liste/tier", function (req, res) {
       const uniqueTiers = [...new Set(tiers)];
       res.send(uniqueTiers);
     })
-    .catch((error) => {
-      // Do something if error
-    });
+    .catch((error) => {});
 });
 app.get("/liste/types", function (req, res) {
   fs.readFile(path)
@@ -177,16 +122,14 @@ app.get("/liste/types", function (req, res) {
       let uniqueTypes = [];
       types.forEach((type) => {
         let trimmedType = type.replace(/'|\s|\[\]/g, "").replace("[", "");
-        let slicedType = trimmedType.slice(0, trimmedType.indexOf(",")); // Cut at the comma
+        let slicedType = trimmedType.slice(0, trimmedType.indexOf(","));
         if (!uniqueTypes.includes(slicedType)) {
           uniqueTypes.push(slicedType);
         }
       });
       res.send(uniqueTypes);
     })
-    .catch((error) => {
-      // Do something if error
-    });
+    .catch((error) => {});
 });
 
 app.get("/random/tier/:tier", function (req, res) {
@@ -199,9 +142,7 @@ app.get("/random/tier/:tier", function (req, res) {
       const randomPokemon = pokemons[randomInt];
       res.send(randomPokemon);
     })
-    .catch((error) => {
-      // Do something if error
-    });
+    .catch((error) => {});
 });
 app.listen(3001, () => {
   console.log("Serveur lancé sur l'adresse http://localhost:3001/");
