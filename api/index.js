@@ -4,7 +4,7 @@ const axios = require("axios");
 const cors = require("cors");
 
 const app = express();
-let path = "./data/pokemon-data.json";
+let path = "../data/pokemon-data.json";
 
 app.use(cors());
 
