@@ -2,13 +2,15 @@ const express = require("express");
 const fs = require("fs/promises");
 const axios = require("axios");
 const cors = require("cors");
-const datas = require("../data/pokemon-data.json");
-const database = require("../database");
-const { getAllPokemon } = require("../controller/pokemon/get");
-const { trace } = require("console");
-const app = express();
+const data = require("../data/pokemon-data.json");
 
-let path = "./data/pokemon-data.json";
+const app = express();
+const database = require("../database");
+
+const { getAllPokemon, getOnePokemon } = require("../controller/pokemon/get");
+const { getAllTypes, getOneType } = require("../controller/types/get");
+const { getAllAttaques } = require("../controller/attaque/get");
+const { getAllTalents } = require("../controller/talent/get");
 
 app.use(cors());
 
@@ -23,284 +25,161 @@ app.get("/", function (req, res) {
         -Renvoie un pokemon aléatoire correspondant au deux types <i style="background: gray"> '/random/[type]/[type]' </i><br>
         -Renvoie un pokemon aléatoire correspondant au stage d'évolution en paramètre (1 le pokemon est non évolué, 2 le pokemon n'a plus d'évolution) <i style="background: gray">'/random/stage/[1-2]' </i><br>
         -Renvoie un pokemon aléatoire dans la tier correspondant <i style="background: gray">'/random/tier/[tier]'</i> <br>
-        -Renvoie la liste de tout les tiers disponible dans la base de donnée <a href="/liste/tier" style="background: gray">'/liste/tier'</a> <br>
         -Renvoie la liste de tout les types disponible dans la base de donnée <a href="/liste/type" style="background: gray">'/liste/type'</a> <br>
-        -Renvoie une lignée de pokemon au hasard <a href="/random/lignee" style="background: gray">'/random/lignee'</a>
         `;
   res.send(content);
 });
+
 app.get("/all", async function (req, res) {
   try {
-    let allPokemon = await getAllPokemon();
-    let allPokemonName = allPokemon.map((pokemon) => pokemon[" Name"]);
-    console.log(allPokemonName);
-    res.send(allPokemonName);
+    const allPokemon = await getAllPokemon();
+
+    for (let i = 0; i < allPokemon.length; i++) {
+      allPokemon[i] = allPokemon[i][" Name"];
+    }
+
+    res.send(allPokemon);
   } catch (error) {
-    console.log("ERREUR: ", error);
-    return res.status(500).send("Error server");
+    console.error("Erreur lors de la récupération des Pokemons :", error);
+    res.status(500).send("Erreur de récupération des Pokemons");
   }
 });
-// app.get("/all", function (req, res) {
-//   fs.readFile(path)
-//     .then((data) => {
-//       let fileData = JSON.parse(data);
-
-//       console.log(fileData);
-
-//       res.send(fileData);
-//     })
-//     .catch((error) => {
-//       console.log("ERREUR: ", error);
-//       return res.status(500).send("Error server");
-//     });
-// });
 
 app.get("/random", async function (req, res) {
   try {
-    let randomPokemon = await getAllPokemon();
-    let randomInt = Math.floor(Math.random() * randomPokemon.length);
-    let randomPokemonName = randomPokemon[randomInt][" Name"];
-    res.send(randomPokemonName);
+    const AllPokemon = await getAllPokemon();
+    const randomNumber = Math.floor(Math.random() * AllPokemon.length);
+    const randomPokemon = AllPokemon[randomNumber];
+    res.send(randomPokemon);
   } catch (error) {
-    console.log("ERREUR: ", error);
-    return res.status(500).send("Error server");
+    console.error("Erreur lors de la récupération des pokémons : ", error);
+    res.status(500).send("Erreur de récupératuoin des pokémons");
   }
 });
-// app.get("/random", function (req, res) {
-//   fs.readFile(path)
-//     .then((data) => {
-//       let fileData = JSON.parse(data);
 
-//       let randomInt = Math.floor(Math.random() * fileData.length);
+app.get("/random/lignee", async function (req, res) {
+  let ArrayPokemon = [];
 
-//       let randomPokemon = fileData[randomInt];
-
-//       res.send(randomPokemon);
-//     })
-//     .catch((error) => {
-//       console.log("ERREUR: ", error);
-//       return res.status(500).send("Error server");
-//     });
-// });
-
-app.get("/random/lignee", function (req, res) {
-  fs.readFile(path)
-    .then((data) => {
-      let fileData = JSON.parse(data);
-      let copyFileData = fileData;
-
-      fileData.forEach((element) => {
-        element["Next Evolution(s)"] = element["Next Evolution(s)"]
-          .replace("[", "")
-          .replace("]", "")
-          .replaceAll("'", "");
-        element["Next Evolution(s)"] = element["Next Evolution(s)"].split(", ");
-      });
-
-      let randomInt = Math.floor(Math.random() * fileData.length);
-
-      let randomPokemon = fileData[randomInt];
-      let newRandomPolemon = [];
-
-      if (randomPokemon["Next Evolution(s)"][0].length != 0) {
-        newRandomPolemon.push(randomPokemon);
-        randomPokemon["Next Evolution(s)"].forEach((element) => {
-          newRandomPolemon.push(
-            copyFileData.filter((pokemon) => pokemon[" Name"] == element)
-          );
-        });
-      } else {
-        newRandomPolemon = randomPokemon;
-      }
-
-      res.send(newRandomPolemon);
-    })
-    .catch((error) => {
-      console.log("ERREUR: ", error);
-      return res.status(500).send("Error server");
-    });
+  const PokemonInfo = await getAllPokemon();
+  const randomNumber = Math.floor(Math.random() * PokemonInfo.length);
+  const randomPokemon = PokemonInfo[randomNumber];
+  ArrayPokemon.push(randomPokemon);
+  if (randomPokemon["Next Evolution(s)"].length !== 0) {
+    const Evolution = await getOnePokemon(
+      randomPokemon["Next Evolution(s)"][0]
+    );
+    ArrayPokemon.push(Evolution);
+    if (Evolution["Next Evolution(s)"].length !== 0) {
+      const Evolution2 = await getOnePokemon(Evolution["Next Evolution(s)"][0]);
+      ArrayPokemon.push(Evolution2);
+    }
+  }
+  res.send(ArrayPokemon);
 });
 
 app.get("/random/tier/:tier", async function (req, res) {
-  const getTier = await axios.get("http://localhost:3001/liste/tier");
-  if (getTier.data.includes(req.params.tier)) {
-    fs.readFile(path)
-      .then((data) => {
-        let fileData = JSON.parse(data);
+  let arrayTier = [];
+  const allPokemon = await getAllPokemon();
+  allPokemon.forEach((element) => {
+    if (element.Tier === req.params.tier) {
+      arrayTier.push(element);
+    }
+  });
 
-        fileData = fileData.filter(
-          (pokemon) => pokemon.Tier == req.params.tier
-        );
+  if (arrayTier.length != 0) {
+    const randomNumber = Math.floor(Math.random() * arrayTier.length);
 
-        let randomInt = Math.floor(Math.random() * fileData.length);
+    const randomTierPokemon = arrayTier[randomNumber];
 
-        let randomPokemon = fileData[randomInt];
-
-        res.send(randomPokemon);
-      })
-      .catch((error) => {
-        console.log("ERREUR: ", error);
-        return res.status(500).send("Error server");
-      });
+    res.send(randomTierPokemon);
   } else {
     res.redirect("/error?e=Le%20tier%20n'existe%20pas");
   }
 });
 
-app.get("/random/stage/:evo", function (req, res) {
-  fs.readFile(path)
-    .then((data) => {
-      let fileData = JSON.parse(data);
+app.get("/random/stage/:evo", async function (req, res) {
+  let arrayPokemonSans = [];
+  let arrayPokemonAvec = [];
+  const allPokemon = await getAllPokemon();
+  allPokemon.forEach((element) => {
+    if (element["Next Evolution(s)"].length === 0) {
+      arrayPokemonSans.push(element);
+    } else {
+      arrayPokemonAvec.push(element);
+    }
+  });
 
-      if (req.params.evo == 1) {
-        fileData = fileData.filter(
-          (pokemon) => pokemon["Next Evolution(s)"] != "[]"
-        );
-      } else if (req.params.evo == 2) {
-        fileData = fileData.filter(
-          (pokemon) => pokemon["Next Evolution(s)"] == "[]"
-        );
-      } else {
-        res.redirect("/error?e=mauvais stage");
-      }
-
-      let randomInt = Math.floor(Math.random() * fileData.length);
-
-      let randomPokemon = fileData[randomInt];
-
-      res.send(randomPokemon);
-    })
-    .catch((error) => {
-      console.log("ERREUR: ", error);
-      return res.status(500).send("Error server");
-    });
+  if (req.params.evo == "1") {
+    const randomNumber = Math.floor(Math.random() * arrayPokemonAvec.length);
+    res.send(arrayPokemonAvec[randomNumber]);
+  } else if (req.params.evo == "2") {
+    const randomNumber = Math.floor(Math.random() * arrayPokemonSans.length);
+    res.send(arrayPokemonSans[randomNumber]);
+  } else {
+    res.redirect("/error?e=Stage%20inconnue");
+  }
 });
 
 app.get("/random/:types", async function (req, res) {
-  const getType = await axios.get("http://localhost:3001/liste/type");
+  const pokemonType = await getOneType(req.params.types);
 
-  if (getType.data.includes(req.params.types)) {
-    fs.readFile(path)
-      .then((data) => {
-        let fileData = JSON.parse(data);
+  let allPokemon = await getAllPokemon();
+  console.log({ allPokemon });
+  allPokemon = allPokemon.filter((pokemon) =>
+    pokemon.Types.includes(pokemonType._id)
+  );
 
-        fileData.forEach((element) => {
-          element.Types = element.Types.replace("[", "")
-            .replace("]", "")
-            .replaceAll("'", "");
-          element.Types = element.Types.split(", ");
-        });
+  if (allPokemon.length !== 0) {
+    const randomNumber = Math.floor(Math.random() * allPokemon.length);
+    const RealAttaque = await getAllAttaques(allPokemon[randomNumber]["Moves"]);
 
-        fileData = fileData.filter((pokemon) =>
-          pokemon.Types.includes(req.params.types)
-        );
-
-        if (fileData.length == 0) {
-          res.redirect("/error?e=Pas%20de%20pokemon");
-        }
-
-        let randomInt = Math.floor(Math.random() * fileData.length);
-
-        let randomPokemon = fileData[randomInt];
-
-        res.send(randomPokemon);
-      })
-      .catch((error) => {
-        console.log("ERREUR: ", error);
-        return res.status(500).send("Error server");
-      });
+    allPokemon[randomNumber]["Types"] = RealTypes;
+    allPokemon[randomNumber]["Moves"] = RealAttaque;
+    res.send(allPokemon[randomNumber]);
   } else {
-    res.redirect("/error?e=Le%20type%20n'existe%20pas");
+    res.redirect("/error?e=Type%20inconnue");
   }
 });
 
 app.get("/random/:type/:types", async function (req, res) {
-  const getTypes = await axios.get("http://localhost:3001/liste/type");
-  if (
-    getTypes.data.includes(req.params.type) &&
-    getTypes.data.includes(req.params.types)
-  ) {
-    fs.readFile(path)
-      .then((data) => {
-        let fileData = JSON.parse(data);
+  const pokemonType1 = await getOneType(req.params.type);
+  const pokemonType2 = await getOneType(req.params.types);
 
-        fileData.forEach((element) => {
-          element.Types = element.Types.replace("[", "")
-            .replace("]", "")
-            .replaceAll("'", "");
-          element.Types = element.Types.split(", ");
-        });
+  let allPokemon = await getAllPokemon();
 
-        fileData = fileData.filter(
-          (pokemon) =>
-            pokemon.Types.includes(req.params.types) &&
-            pokemon.Types.includes(req.params.type)
-        );
-        console.log(fileData);
+  allPokemon = allPokemon.filter((type) =>
+    type.Types.includes(pokemonType1._id)
+  );
+  allPokemon = allPokemon.filter((types) =>
+    types.Types.includes(pokemonType2._id)
+  );
 
-        if (fileData.length == 0) {
-          res.redirect("/error?e=Pas%20de%20pokemon");
-        }
-
-        let randomInt = Math.floor(Math.random() * fileData.length);
-
-        let randomPokemon = fileData[randomInt];
-
-        res.send(randomPokemon);
-      })
-      .catch((error) => {
-        console.log("ERREUR: ", error);
-        return res.status(500).send("Error server");
-      });
+  if (allPokemon.length !== 0) {
+    const randomNumber = Math.floor(Math.random() * allPokemon.length);
+    res.send(allPokemon[randomNumber]);
   } else {
-    res.redirect("/error?e=Un%20type%20n'existe%20pas");
+    res.redirect("/error?e=Type%20inconnue");
   }
 });
 
-app.get("/liste/tier", function (req, res) {
-  fs.readFile(path)
-    .then((data) => {
-      let allTier = [];
-      let fileData = JSON.parse(data);
-
-      fileData.forEach((element) => {
-        if (!allTier.includes(element.Tier)) {
-          allTier.push(element.Tier);
-        }
-      });
-
-      res.send(allTier);
-    })
-    .catch((error) => {
-      console.log("ERREUR: ", error);
-      return res.status(500).send("Error server");
-    });
+app.get("/liste/tier", async function (req, res) {
+  let allTier = [];
+  const allPokemon = await getAllPokemon();
+  allPokemon.forEach((element) => {
+    if (!allTier.includes(element.Tier) && element.Tier != null) {
+      allTier.push(element.Tier);
+    }
+  });
+  res.send(allTier);
 });
 
-app.get("/liste/type", function (req, res) {
-  fs.readFile(path)
-    .then((data) => {
-      let allTypes = [];
-      let fileData = JSON.parse(data);
-
-      fileData.forEach((element) => {
-        element.Types = element.Types.replace("[", "")
-          .replace("]", "")
-          .replaceAll("'", "");
-        element.Types = element.Types.split(", ");
-        element.Types.forEach((elements) => {
-          if (!allTypes.includes(elements)) {
-            allTypes.push(elements);
-          }
-        });
-      });
-
-      res.send(allTypes);
-    })
-    .catch((error) => {
-      console.log("ERREUR: ", error);
-      return res.status(500).send("Error server");
-    });
+app.get("/liste/type", async function (req, res) {
+  const allTypes = await getAllTypes();
+  let arrayTypes = [];
+  allTypes.forEach((elt) => {
+    arrayTypes.push(elt.name);
+  });
+  res.send(arrayTypes);
 });
 
 app.get("/error", function (req, res) {
@@ -308,5 +187,5 @@ app.get("/error", function (req, res) {
 });
 
 app.listen(3001, () => {
-  console.log("Serveur lancÃ© sur l'adresse http://localhost:3001/");
+  console.log("Serveur lancé sur l'adresse http://localhost:3001/");
 });
