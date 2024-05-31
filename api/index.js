@@ -17,15 +17,16 @@ app.use(cors());
 database();
 
 app.get("/", function (req, res) {
-  let content = `Hello World! <br><br>
+  let content = `<h1>Pokemon API</h1>
+  
     
     Comment fonctionne l'API: <br>
-        -Renvoie un pokemon aléatoire de la liste <a href="/random" style="background: gray">'/random'</a><br>
-        -Renvoie un pokemon aléatoire de la liste correspondant au type <i style="background: gray">'/random/[type]' </i><br>
-        -Renvoie un pokemon aléatoire correspondant au deux types <i style="background: gray"> '/random/[type]/[type]' </i><br>
-        -Renvoie un pokemon aléatoire correspondant au stage d'évolution en paramètre (1 le pokemon est non évolué, 2 le pokemon n'a plus d'évolution) <i style="background: gray">'/random/stage/[1-2]' </i><br>
-        -Renvoie un pokemon aléatoire dans la tier correspondant <i style="background: gray">'/random/tier/[tier]'</i> <br>
-        -Renvoie la liste de tout les types disponible dans la base de donnée <a href="/liste/type" style="background: gray">'/liste/type'</a> <br>
+        -Renvoie un pokemon aléatoire de la liste <a href="/random" >/random</a><br>
+        -Renvoie un pokemon aléatoire de la liste correspondant au type/random/[type]<br>
+        -Renvoie un pokemon aléatoire correspondant au deux types /random/[type]/[type]<br>
+        -Renvoie un pokemon aléatoire correspondant au stage d'évolution en paramètre /random/stage/[1-2]<br>
+        -Renvoie un pokemon aléatoire dans la tier correspondant /random/tier/[tier] <br>
+        -Renvoie la liste de tout les types disponible dans la base de donnée <a href="/liste/type" >/liste/type</a> <br>
         `;
   res.send(content);
 });
