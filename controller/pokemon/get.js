@@ -6,16 +6,21 @@ async function getAllPokemon() {
   try {
     const pokemons = await db.collection("Pokemon").find({}).toArray();
 
-    // console.log({pokemons});
-
-    pokemons.forEach((element) => {
-      console.log(element[" Name"]);
-    });
-
     return pokemons;
   } catch (error) {
     console.error("Erreur : " + error);
   }
 }
 
-module.exports = { getAllPokemon };
+async function getOnePokemon(idPokemon) {
+  const db = await initDatabase();
+
+  try {
+    const pokemon = await db.collection("Pokemon").findOne({ _id: idPokemon });
+
+    return pokemon;
+  } catch (error) {
+    console.error("Erreur : " + error);
+  }
+}
+module.exports = { getAllPokemon, getOnePokemon };
