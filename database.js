@@ -1,7 +1,7 @@
 const { MongoClient } = require("mongodb");
 
 let databaseUrl =
-  "mongodb+srv://maxanceleroy:vxEGtcbAi3Tn5Ug8@pokemon.dwavndv.mongodb.net/npm";
+  "mongodb+srv://maxanceleroy:vxEGtcbAi3Tn5Ug8@pokemon.dwavndv.mongodb.net/Pokemon";
 
 let cachedDb = null;
 let promise = null;
